@@ -1,8 +1,9 @@
 # 骰子魔塔 · Tower of Magic Dice
 
-魔塔 × 骰子对抗的网页游戏（设计阶段）。
+魔塔 × 骰子对抗的 HTML5 网页游戏，适配手机端（设计阶段）。
 
 - 设计文档：[docs/GDD.md](docs/GDD.md)
 - 角色设定：[战士 · 凯恩·灰誓（暴怒）](docs/characters/warrior.md)
+- 平台与移动端方案：[docs/tech/platform.md](docs/tech/platform.md)
 - To Do 清单：[docs/TODO.md](docs/TODO.md)
 - 战斗数值模拟器：`node sim/battle-sim.mjs [每组对局次数]`

@@ -99,17 +99,17 @@ function battle(heroTpl, monTpl) {
 // ---------- 数据 ----------
 const base = { atkMod: 0, defMod: 0, dodgeMod: 0, group: 0 };
 const heroes = [
-  { ...base, name: '铁卫「三棱」', atkDice: '3d4', def: '2d6', dodgeDice: '1d2', hp: 50, spd: 9 },
-  { ...base, name: '剑士「双子」', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10 },
-  { ...base, name: '赌徒「孤注」', atkDice: '1d12', def: '1d6', dodgeDice: '1d6', hp: 45, spd: 12 },
-  { ...base, name: '咒术师「蚀骨」', atkDice: '1d8+1d4', def: '1d4+1d4', dodgeDice: '1d4', hp: 50, spd: 10 },
+  { ...base, name: '铁卫「三棱」', atkDice: '3d4', def: '3d4', dodgeDice: '1d2', hp: 50, spd: 9 },
+  { ...base, name: '战士「双子」', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10 },
+  { ...base, name: '赌徒「孤注」', atkDice: '1d12', def: '1d8', dodgeDice: '1d6', hp: 45, spd: 12 },
+  { ...base, name: '咒术师「蚀骨」', atkDice: '1d8+1d4', def: '1d6+1d2', dodgeDice: '1d4', hp: 50, spd: 10 },
 ];
 const monsters = [
   { ...base, name: '绿史莱姆', atkDice: '1d4', def: '1d4', hp: 10, spd: 8 },
   { ...base, name: '蝙蝠群 [群体1]', atkDice: '1d4', def: '1d2', dodgeDice: '1d6', hp: 8, spd: 14, group: 1 },
   { ...base, name: '骷髅兵', atkDice: '2d4', def: '2d6', dodgeDice: '1d2', hp: 16, spd: 9 },
   { ...base, name: '哥布林群 [群体2]', atkDice: '1d6', def: '1d4', dodgeDice: '1d4', hp: 18, spd: 10, group: 2 },
-  { ...base, name: '兽人战士', atkDice: '2d6', def: '2d6', dodgeDice: '1d2', hp: 28, spd: 9 },
+  { ...base, name: '兽人蛮兵', atkDice: '2d6', def: '2d6', dodgeDice: '1d2', hp: 28, spd: 9 },
   { ...base, name: '首领·骨龙 [群体1]', atkDice: '2d8', def: '2d8', dodgeDice: '1d4', hp: 60, spd: 11, group: 1 },
 ];
 

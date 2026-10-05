@@ -1,7 +1,7 @@
 // 骰子魔塔 · 战斗数值模拟器（蒙特卡洛）
 // 用法：node sim/battle-sim.mjs [每组对局次数，默认 20000]
-// 只实现 GDD 中的基础规则：ATB 行动条、闪避 → 防御 → 伤害 → 护甲磨损、群体多段、特质平值修正。
-// 技能与遗物不在这里模拟，用来给数值定一个「裸装基线」。
+// 实现 GDD 中的基础规则：ATB 行动条、闪避 → 防御 → 伤害 → 护甲磨损、群体多段、特质平值修正。
+// 角色技能目前只实现战士（被动「罗兰之声」、主动「卸甲」）；遗物不模拟。
 
 const N = Number(process.argv[2]) || 20000;
 
@@ -23,7 +23,9 @@ const show = (pool) => {
     .map((f) => `${counts[f]}d${f}`)
     .join('+');
 };
-const roll = (pool) => pool.reduce((s, f) => s + 1 + Math.floor(Math.random() * f), 0);
+const rollFaces = (pool) => pool.map((f) => 1 + Math.floor(Math.random() * f));
+const sum = (arr) => arr.reduce((s, x) => s + x, 0);
+const roll = (pool) => sum(rollFaces(pool));
 
 // 护甲磨损：每降 1 级，面数最小的骰子 -1 面；降到 d1 时碎裂移除。
 function wear(pool, levels) {
@@ -36,9 +38,29 @@ function wear(pool, levels) {
   return p;
 }
 
+// 护甲减半：护甲等级降到 floor(当前等级 / 2)，按磨损规则逐级扣。
+function halve(pool) {
+  const target = Math.floor(sum(pool) / 2);
+  let p = [...pool];
+  while (p.length && sum(p) > target) p = wear(p, 1);
+  return p;
+}
+
+// 攻击投骰。战士被动「罗兰之声」：投出对子时，追加一颗与对子点数相同的 d6
+// （只看原始骰面，追加的骰子不连锁；多组对子时取最高的一组，只触发一次）。
+function rollAttack(att) {
+  const faces = rollFaces(att.atk);
+  let total = sum(faces);
+  if (att.pairEcho) {
+    const pairs = faces.filter((v, i) => faces.indexOf(v) !== i);
+    if (pairs.length) total += Math.max(...pairs);
+  }
+  return total;
+}
+
 // ---------- 单段攻击 ----------
 function strike(att, def, log) {
-  const a = Math.max(0, roll(att.atk) + att.atkMod);
+  const a = Math.max(0, rollAttack(att) + att.atkMod);
   const dodge = def.dodge.length ? Math.max(0, roll(def.dodge) + def.dodgeMod) : 0;
   if (a <= dodge) {
     log.dodged++;
@@ -68,7 +90,7 @@ function nextActors(units) {
 }
 
 function spawn(tpl, isHero) {
-  return {
+  const u = {
     ...tpl,
     isHero,
     gauge: 0,
@@ -77,6 +99,13 @@ function spawn(tpl, isHero) {
     dodge: tpl.dodgeDice ? parse(tpl.dodgeDice) : [],
     actions: 0,
   };
+  // 战士主动「卸甲」（交战前发动）：本场无法闪避，护甲减半，攻击骰 +1d6。
+  if (tpl.unarmor) {
+    u.dodge = [];
+    u.armor = halve(u.armor);
+    u.atk = [...u.atk, 6];
+  }
+  return u;
 }
 
 function battle(heroTpl, monTpl) {
@@ -100,7 +129,9 @@ function battle(heroTpl, monTpl) {
 const base = { atkMod: 0, defMod: 0, dodgeMod: 0, group: 0 };
 const heroes = [
   { ...base, name: '铁卫「三棱」', atkDice: '3d4', def: '3d4', dodgeDice: '1d2', hp: 50, spd: 9 },
-  { ...base, name: '战士「双子」', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10 },
+  { ...base, name: '战士「双子」（无技能）', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10 },
+  { ...base, name: '战士「双子」+ 被动', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10, pairEcho: true },
+  { ...base, name: '战士「双子」+ 被动 + 卸甲', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10, pairEcho: true, unarmor: true },
   { ...base, name: '赌徒「孤注」', atkDice: '1d12', def: '1d8', dodgeDice: '1d6', hp: 45, spd: 12 },
   { ...base, name: '咒术师「蚀骨」', atkDice: '1d8+1d4', def: '1d6+1d2', dodgeDice: '1d4', hp: 50, spd: 10 },
 ];
@@ -121,6 +152,7 @@ while (p.length) {
   ladder.push(show(p));
 }
 console.log('护甲阶梯（2d6 每次 -1 级）：', ladder.join(' → '));
+console.log('卸甲后的护甲（减半）：', ['1d6+1d4', '2d6', '3d4', '1d8'].map((d) => `${d} → ${show(halve(parse(d)))}`).join('，'));
 
 // ---------- 行动顺序预览（ATB 是确定性的，可以提前显示） ----------
 const previewOrder = (hTpl, mTpl, n) => {
@@ -140,7 +172,8 @@ console.log('');
 // ---------- 对局统计 ----------
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 for (const h of heroes) {
-  console.log(`## ${h.name}  攻${h.atkDice} 防${h.def} 闪${h.dodgeDice} HP${h.hp} 速${h.spd}`);
+  const u = spawn(h, true);
+  console.log(`## ${h.name}  攻${show(u.atk)} 防${show(u.armor)} 闪${show(u.dodge)} HP${h.hp} 速${h.spd}`);
   console.log('| 怪物 | 胜率 | 平均掉血 | 90% 分位掉血 | 平均行动次数（我/敌） |');
   console.log('|---|---|---|---|---|');
   for (const m of monsters) {

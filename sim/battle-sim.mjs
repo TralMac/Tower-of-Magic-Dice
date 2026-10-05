@@ -99,13 +99,24 @@ function spawn(tpl, isHero) {
     dodge: tpl.dodgeDice ? parse(tpl.dodgeDice) : [],
     actions: 0,
   };
-  // 战士主动「卸甲」（交战前发动）：本场无法闪避，护甲减半，攻击骰 +1d6。
-  if (tpl.unarmor) {
-    u.dodge = [];
-    u.armor = halve(u.armor);
-    u.atk = [...u.atk, 6];
-  }
+  u.maxArmor = sum(u.armor);
   return u;
+}
+
+// 战士主动「卸甲」：轮到自己行动时发动（不占用本次行动），每场 1 次。
+// 本场剩余时间无法闪避，失去当前一半护甲，攻击骰 +1d6。
+// 发动策略：first = 第一次行动就发动；broken = 自身护甲磨损到不足初始一半时发动。
+function shouldUnarmor(u) {
+  if (!u.unarmor || u.unarmored) return false;
+  if (u.unarmor === 'first') return true;
+  if (u.unarmor === 'broken') return sum(u.armor) * 2 < u.maxArmor;
+  return false;
+}
+function unarmor(u) {
+  u.unarmored = true;
+  u.dodge = [];
+  u.armor = halve(u.armor);
+  u.atk = [...u.atk, 6];
 }
 
 function battle(heroTpl, monTpl) {
@@ -116,6 +127,7 @@ function battle(heroTpl, monTpl) {
     for (const u of nextActors([hero, mon])) {
       if (hero.hp <= 0 || mon.hp <= 0) break;
       const target = u === hero ? mon : hero;
+      if (shouldUnarmor(u)) unarmor(u);
       const hits = 1 + (u.group || 0);
       for (let h = 0; h < hits && target.hp > 0; h++) strike(u, target, log);
       u.gauge -= GAUGE;
@@ -131,7 +143,8 @@ const heroes = [
   { ...base, name: '铁卫「三棱」', atkDice: '3d4', def: '3d4', dodgeDice: '1d2', hp: 50, spd: 9 },
   { ...base, name: '战士「双子」（无技能）', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10 },
   { ...base, name: '战士「双子」+ 被动', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10, pairEcho: true },
-  { ...base, name: '战士「双子」+ 被动 + 卸甲', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10, pairEcho: true, unarmor: true },
+  { ...base, name: '战士「双子」+ 被动 + 卸甲（首回合）', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10, pairEcho: true, unarmor: 'first' },
+  { ...base, name: '战士「双子」+ 被动 + 卸甲（护甲过半磨损后）', atkDice: '2d6', def: '1d6+1d4', dodgeDice: '1d4', hp: 50, spd: 10, pairEcho: true, unarmor: 'broken' },
   { ...base, name: '赌徒「孤注」', atkDice: '1d12', def: '1d8', dodgeDice: '1d6', hp: 45, spd: 12 },
   { ...base, name: '咒术师「蚀骨」', atkDice: '1d8+1d4', def: '1d6+1d2', dodgeDice: '1d4', hp: 50, spd: 10 },
 ];

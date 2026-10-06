@@ -1,0 +1,16 @@
+{
+  "name": "骰子魔塔 · Tower of Magic Dice",
+  "short_name": "骰子魔塔",
+  "description": "魔塔 × 骰子对抗的免费网页游戏",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#14161f",
+  "theme_color": "#14161f",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

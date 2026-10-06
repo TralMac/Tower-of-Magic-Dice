@@ -1,0 +1,572 @@
+:root {
+  --bg: #14161f;
+  --panel: #1e2130;
+  --panel-2: #262a3d;
+  --line: #353a52;
+  --text: #e8e6df;
+  --muted: #9a9cab;
+  --accent: #e0a64a;
+  --danger: #e0503a;
+  --good: #6fc27a;
+  --hp: #d9534f;
+  --stamina: #e8c547;
+  --crystal: #7fb7ff;
+  --yellow: #e8c547;
+  --blue: #5b8ee8;
+  --radius: 10px;
+  --gutter: 12px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Noto Sans CJK SC', 'Noto Sans SC', Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button.primary {
+  background: var(--accent);
+  color: #1b1408;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+button.danger {
+  border-color: var(--danger);
+  color: #ffb3a8;
+}
+
+/* ---------- 布局：竖屏优先 ---------- */
+#app {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  grid-template-areas: 'hud' 'map' 'status' 'controls';
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+#hud {
+  grid-area: hud;
+  padding: 8px var(--gutter) 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+.hud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.hud-bar {
+  width: 54px;
+  height: 6px;
+  background: var(--panel-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.hud-bar > span {
+  display: block;
+  height: 100%;
+}
+.hud-floor {
+  margin-left: auto;
+  color: var(--muted);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#map-wrap {
+  grid-area: map;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--gutter);
+}
+#map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+#map canvas {
+  display: block;
+  margin: 0 auto;
+  image-rendering: pixelated;
+}
+
+#status-bar {
+  grid-area: status;
+  min-height: 40px;
+  padding: 6px var(--gutter);
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.4;
+}
+#status-bar.warn {
+  color: #ffb3a8;
+}
+
+#controls {
+  grid-area: controls;
+  padding: 4px var(--gutter) 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.menu-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(2, 44px);
+  gap: 4px;
+}
+.dpad button {
+  padding: 0;
+}
+.dpad .up {
+  grid-column: 2;
+  grid-row: 1;
+}
+.dpad .left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.dpad .down {
+  grid-column: 2;
+  grid-row: 2;
+}
+.dpad .right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+/* 横屏（平板 / 电脑）：地图在左，信息在右 */
+@media (orientation: landscape) and (min-width: 720px) {
+  #app {
+    max-width: 1100px;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: 'map hud' 'map status' 'map controls';
+    gap: 0 12px;
+  }
+  #hud {
+    flex-direction: column;
+    align-items: stretch;
+    padding-top: 20px;
+  }
+  .hud-floor {
+    margin-left: 0;
+  }
+  #status-bar {
+    align-self: start;
+    text-align: left;
+  }
+  #controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- 弹窗 ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 6, 10, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  padding: env(safe-area-inset-top) 0 0;
+}
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 560px;
+  max-height: 88vh;
+  overflow: auto;
+  padding: 16px var(--gutter) calc(16px + env(safe-area-inset-bottom));
+}
+@media (min-width: 720px) {
+  .modal-backdrop {
+    align-items: center;
+  }
+  .modal {
+    border-radius: 16px;
+  }
+}
+.modal h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.modal p {
+  margin: 8px 0;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+.modal .muted {
+  color: var(--muted);
+}
+.modal .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.modal .actions button {
+  flex: 1 1 auto;
+}
+.modal .list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+.modal .list button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  gap: 10px;
+  padding: 8px 12px;
+  line-height: 1.35;
+}
+.modal textarea {
+  width: 100%;
+  min-height: 90px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+.predict {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+.predict th,
+.predict td {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+.predict th:first-child,
+.predict td:first-child {
+  text-align: left;
+  color: var(--muted);
+  font-weight: normal;
+}
+.warn {
+  color: #ffb3a8;
+}
+.monster-card {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.monster-card .name {
+  font-weight: 600;
+}
+.monster-card .meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+.big-die {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 30px;
+  font-weight: 700;
+  margin: 8px auto;
+}
+.center {
+  text-align: center;
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.toggle input {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------- 战斗 ---------- */
+#battle {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#battle[hidden] {
+  display: none;
+}
+.battle {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px var(--gutter);
+}
+.order {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--muted);
+}
+.order .chip {
+  min-width: 26px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text);
+}
+.chip.hero {
+  background: #3b5b8f;
+}
+.chip.enemy {
+  background: #8f3b3b;
+}
+.unit {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  display: grid;
+  gap: 6px;
+}
+.pool {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-right: 8px;
+}
+.unit .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.unit .name {
+  font-weight: 600;
+}
+.unit .tags {
+  color: var(--muted);
+  font-size: 13px;
+}
+.bar {
+  height: 10px;
+  background: var(--panel-2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.bar > span {
+  display: block;
+  height: 100%;
+  transition: width 0.25s;
+}
+.bar.hp > span {
+  background: var(--hp);
+}
+.bar.gauge {
+  height: 5px;
+}
+.bar.gauge > span {
+  background: var(--accent);
+}
+.dice-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.unit .die {
+  min-width: 26px;
+  height: 24px;
+}
+.die {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--text);
+}
+.die.face {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: 20px;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 9px;
+}
+.die.echo {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.die.roll {
+  animation: tumble 0.28s ease-out;
+}
+@keyframes tumble {
+  from {
+    transform: rotate(-120deg) scale(0.6);
+    opacity: 0.2;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.stage {
+  flex: 1;
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.stage .dice-row {
+  justify-content: center;
+}
+.stage .line {
+  min-height: 2.8em;
+  line-height: 1.4;
+}
+.log {
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 4.5em;
+  line-height: 1.5;
+}
+.battle-controls {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.speed {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.speed button.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.skill-btn {
+  min-width: 112px;
+  min-height: 56px;
+  display: grid;
+  line-height: 1.15;
+  padding: 4px 12px;
+}
+.skill-btn small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.skill-btn.ready {
+  background: var(--accent);
+  color: #1b1408;
+}
+.skill-btn.ready small {
+  color: #3a2a0e;
+}
+.battle .toggle {
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 32px;
+}
+.flash-hit {
+  animation: flash 0.3s;
+}
+@keyframes flash {
+  50% {
+    border-color: var(--danger);
+    background: #3a1f24;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .die.roll,
+  .flash-hit {
+    animation: none;
+  }
+}
+body.reduce-motion .die.roll,
+body.reduce-motion .flash-hit {
+  animation: none;
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#14161f" />
+    <meta name="description" content="骰子魔塔 · Tower of Magic Dice — 魔塔 × 骰子对抗的免费网页游戏" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <title>骰子魔塔 · Tower of Magic Dice</title>
+  </head>
+  <body>
+    <div id="app">
+      <header id="hud" aria-live="polite"></header>
+      <main id="map-wrap">
+        <div id="map"></div>
+      </main>
+      <div id="status-bar"></div>
+      <footer id="controls"></footer>
+    </div>
+    <div id="battle" hidden></div>
+    <div id="modal-root"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

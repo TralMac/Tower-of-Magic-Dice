@@ -1,0 +1,27 @@
+{
+  "name": "tower-of-magic-dice",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "骰子魔塔 · Tower of Magic Dice — HTML5 网页游戏",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "sim": "vite-node tools/battle-sim.ts",
+    "autoplay": "vite-node tools/autoplay.ts",
+    "icons": "node tools/make-icons.mjs"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "5.9.3",
+    "vite": "7.3.6",
+    "vite-node": "3.2.4",
+    "vitest": "3.2.7"
+  }
+}

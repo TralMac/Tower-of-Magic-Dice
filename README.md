@@ -2,6 +2,8 @@
 
 魔塔 × 骰子对抗的 HTML5 网页游戏，适配手机端，完全免费。当前是**原型 v0.1：战士篇，3 层**。
 
+**在线试玩：https://tralmac.github.io/Tower-of-Magic-Dice/**（推送到默认分支后由 GitHub Actions 自动测试、构建、部署）
+
 ## 文档
 
 - 设计文档：[docs/GDD.md](docs/GDD.md)
